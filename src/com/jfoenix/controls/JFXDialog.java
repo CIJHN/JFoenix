@@ -21,6 +21,7 @@ package com.jfoenix.controls;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.jfoenix.controls.events.JFXDialogEvent;
 import com.jfoenix.converters.DialogTransitionConverter;
@@ -57,7 +58,7 @@ import javafx.util.Duration;
 /**
  * Note: for JFXDialog to work properly, the root node <b>MUST</b>
  * be of type {@link StackPane}
- * 
+ *
  * @author  Shadi Shaheen
  * @version 1.0
  * @since   2016-03-09
@@ -66,7 +67,7 @@ import javafx.util.Duration;
 public class JFXDialog extends StackPane {
 
 	//	public static enum JFXDialogLayout{PLAIN, HEADING, ACTIONS, BACKDROP};
-	public static enum DialogTransition{CENTER, TOP, RIGHT, BOTTOM, LEFT};
+	public enum DialogTransition{CENTER, TOP, RIGHT, BOTTOM, LEFT};
 
 	private StackPane contentHolder;
 
@@ -96,13 +97,13 @@ public class JFXDialog extends StackPane {
 	 * <li>BOTTOM</li>
 	 * <li>LEFT</li>
 	 * </ul>
-	 * 
-	 * @param dialogContainer is the parent of the dialog, it 
+	 *
+	 * @param dialogContainer is the parent of the dialog, it
 	 * @param content the content of dialog
 	 * @param transitionType the animation type
 	 */
 
-	public JFXDialog(StackPane dialogContainer, Region content, DialogTransition transitionType) {		
+	public JFXDialog(StackPane dialogContainer, Region content, DialogTransition transitionType) {
 		initialize();
 		setContent(content);
 		setDialogContainer(dialogContainer);
@@ -122,13 +123,13 @@ public class JFXDialog extends StackPane {
 	 * <li>BOTTOM</li>
 	 * <li>LEFT</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param dialogContainer
 	 * @param content
 	 * @param transitionType
 	 * @param overlayClose
 	 */
-	public JFXDialog(StackPane dialogContainer, Region content, DialogTransition transitionType, boolean overlayClose) {		
+	public JFXDialog(StackPane dialogContainer, Region content, DialogTransition transitionType, boolean overlayClose) {
 		initialize();
 		setOverlayClose(overlayClose);
 		setContent(content);
@@ -141,17 +142,17 @@ public class JFXDialog extends StackPane {
 	private void initChangeListeners(){
 		overlayCloseProperty().addListener((o,oldVal,newVal)->{
 			if(newVal) this.addEventHandler(MouseEvent.MOUSE_PRESSED, closeHandler);
-			else this.removeEventHandler(MouseEvent.MOUSE_PRESSED, closeHandler);		
+			else this.removeEventHandler(MouseEvent.MOUSE_PRESSED, closeHandler);
 		});
 	}
 
 	private void initialize() {
 		this.setVisible(false);
-		this.getStyleClass().add(DEFAULT_STYLE_CLASS);   
+		this.getStyleClass().add(DEFAULT_STYLE_CLASS);
 		this.transitionType.addListener((o,oldVal,newVal)->{
 			animation = getShowAnimation(transitionType.get());
 		});
-		
+
 		contentHolder = new StackPane();
 		contentHolder.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(2), null)));
 		JFXDepthManager.setDepth(contentHolder, 4);
@@ -160,12 +161,17 @@ public class JFXDialog extends StackPane {
 		contentHolder.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 		this.getChildren().add(contentHolder);
 		this.getStyleClass().add("jfx-dialog-overlay-pane");
-		StackPane.setAlignment(contentHolder, Pos.CENTER);		
+		StackPane.setAlignment(contentHolder, Pos.CENTER);
 		this.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 0, 0.1), null, null)));
 		// close the dialog if clicked on the overlay pane
 		if(overlayClose.get()) this.addEventHandler(MouseEvent.MOUSE_PRESSED, closeHandler);
 		// prevent propagating the events to overlay pane
 		contentHolder.addEventHandler(MouseEvent.ANY, (e)->e.consume());
+	}
+
+	public void setContentHolderBackground(Background background){
+		Objects.requireNonNull(background);
+		contentHolder.setBackground(background);
 	}
 
 	/***************************************************************************
@@ -175,7 +181,7 @@ public class JFXDialog extends StackPane {
 	 **************************************************************************/
 
 	/**
-	 * @return the dialog container 
+	 * @return the dialog container
 	 */
 	public StackPane getDialogContainer() {
 		return dialogContainer;
@@ -184,7 +190,7 @@ public class JFXDialog extends StackPane {
 	/**
 	 * set the dialog container
 	 * Note: the dialog container must be StackPane, its the container for the dialog to be shown in.
-	 * 
+	 *
 	 * @param dialogContainer
 	 */
 	public void setDialogContainer(StackPane dialogContainer) {
@@ -214,9 +220,9 @@ public class JFXDialog extends StackPane {
 	 */
 	public void setContent(Region content) {
 		if(content!=null){
-			this.content = content;		
+			this.content = content;
 			this.content.setPickOnBounds(false);
-			contentHolder.getChildren().add(content);			
+			contentHolder.getChildren().add(content);
 		}
 	}
 
@@ -251,7 +257,7 @@ public class JFXDialog extends StackPane {
 	public void show(){
 		this.setDialogContainer(dialogContainer);
 		//		animation = getShowAnimation(transitionType.get());
-		animation.play();		
+		animation.play();
 	}
 
 	/**
@@ -276,26 +282,26 @@ public class JFXDialog extends StackPane {
 	private Transition getShowAnimation(DialogTransition transitionType){
 		Transition animation = null;
 		if(contentHolder!=null){
-			switch (transitionType) {		
+			switch (transitionType) {
 			case LEFT:
 				contentHolder.setScaleX(1);
 				contentHolder.setScaleY(1);
 				contentHolder.setTranslateX(-offsetX);
 				animation = new LeftTransition();
 				break;
-			case RIGHT:			
+			case RIGHT:
 				contentHolder.setScaleX(1);
 				contentHolder.setScaleY(1);
 				contentHolder.setTranslateX(offsetX);
 				animation = new RightTransition();
 				break;
-			case TOP:	
+			case TOP:
 				contentHolder.setScaleX(1);
 				contentHolder.setScaleY(1);
 				contentHolder.setTranslateY(-offsetY);
 				animation = new TopTransition();
 				break;
-			case BOTTOM:			
+			case BOTTOM:
 				contentHolder.setScaleX(1);
 				contentHolder.setScaleY(1);
 				contentHolder.setTranslateY(offsetY);
@@ -313,7 +319,7 @@ public class JFXDialog extends StackPane {
 	}
 
 	private void resetProperties(){
-		this.setVisible(false);	
+		this.setVisible(false);
 		contentHolder.setTranslateX(0);
 		contentHolder.setTranslateY(0);
 		contentHolder.setScaleX(1);
@@ -323,15 +329,15 @@ public class JFXDialog extends StackPane {
 	private class LeftTransition extends CachedTransition {
 		public LeftTransition() {
 			super(contentHolder, new Timeline(
-					new KeyFrame(Duration.ZERO, 
+					new KeyFrame(Duration.ZERO,
 							new KeyValue(contentHolder.translateXProperty(), -offsetX ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.visibleProperty(), false ,Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(10), 
+					new KeyFrame(Duration.millis(10),
 							new KeyValue(JFXDialog.this.visibleProperty(), true ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 0,Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(1000), 
+					new KeyFrame(Duration.millis(1000),
 							new KeyValue(contentHolder.translateXProperty(), 0,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 1,Interpolator.EASE_BOTH)
 							))
@@ -345,15 +351,15 @@ public class JFXDialog extends StackPane {
 	private class RightTransition extends CachedTransition {
 		public RightTransition() {
 			super(contentHolder, new Timeline(
-					new KeyFrame(Duration.ZERO, 
+					new KeyFrame(Duration.ZERO,
 							new KeyValue(contentHolder.translateXProperty(), offsetX ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.visibleProperty(), false ,Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(10), 
+					new KeyFrame(Duration.millis(10),
 							new KeyValue(JFXDialog.this.visibleProperty(), true ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 0, Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(1000), 
+					new KeyFrame(Duration.millis(1000),
 							new KeyValue(contentHolder.translateXProperty(), 0,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 1, Interpolator.EASE_BOTH)))
 					);
@@ -366,11 +372,11 @@ public class JFXDialog extends StackPane {
 	private class TopTransition extends CachedTransition {
 		public TopTransition() {
 			super(contentHolder, new Timeline(
-					new KeyFrame(Duration.ZERO, 
+					new KeyFrame(Duration.ZERO,
 							new KeyValue(contentHolder.translateYProperty(), -offsetY ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.visibleProperty(), false ,Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(10), 
+					new KeyFrame(Duration.millis(10),
 							new KeyValue(JFXDialog.this.visibleProperty(), true ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 0, Interpolator.EASE_BOTH)
 							),
@@ -387,15 +393,15 @@ public class JFXDialog extends StackPane {
 	private class BottomTransition extends CachedTransition {
 		public BottomTransition() {
 			super(contentHolder, new Timeline(
-					new KeyFrame(Duration.ZERO, 
+					new KeyFrame(Duration.ZERO,
 							new KeyValue(contentHolder.translateYProperty(), offsetY ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.visibleProperty(), false ,Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(10), 
+					new KeyFrame(Duration.millis(10),
 							new KeyValue(JFXDialog.this.visibleProperty(), true ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 0, Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(1000), 
+					new KeyFrame(Duration.millis(1000),
 							new KeyValue(contentHolder.translateYProperty(), 0,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 1, Interpolator.EASE_BOTH)))
 					);
@@ -408,16 +414,16 @@ public class JFXDialog extends StackPane {
 	private class CenterTransition extends CachedTransition {
 		public CenterTransition() {
 			super(contentHolder, new Timeline(
-					new KeyFrame(Duration.ZERO, 
+					new KeyFrame(Duration.ZERO,
 							new KeyValue(contentHolder.scaleXProperty(), 0 ,Interpolator.EASE_BOTH),
 							new KeyValue(contentHolder.scaleYProperty(), 0 ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.visibleProperty(), false ,Interpolator.EASE_BOTH)
 							),
-					new KeyFrame(Duration.millis(10), 
+					new KeyFrame(Duration.millis(10),
 							new KeyValue(JFXDialog.this.visibleProperty(), true ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 0,Interpolator.EASE_BOTH)
-							),							
-					new KeyFrame(Duration.millis(1000), 							
+							),
+					new KeyFrame(Duration.millis(1000),
 							new KeyValue(contentHolder.scaleXProperty(), 1 ,Interpolator.EASE_BOTH),
 							new KeyValue(contentHolder.scaleYProperty(), 1 ,Interpolator.EASE_BOTH),
 							new KeyValue(JFXDialog.this.opacityProperty(), 1, Interpolator.EASE_BOTH)
@@ -458,7 +464,7 @@ public class JFXDialog extends StackPane {
 	public DialogTransition getTransitionType(){
 		return transitionType == null ? DialogTransition.CENTER : transitionType.get();
 	}
-	public StyleableObjectProperty<DialogTransition> transitionTypeProperty(){		
+	public StyleableObjectProperty<DialogTransition> transitionTypeProperty(){
 		return this.transitionType;
 	}
 	public void setTransitionType(DialogTransition transition){
