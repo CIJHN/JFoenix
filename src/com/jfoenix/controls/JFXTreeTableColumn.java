@@ -20,9 +20,10 @@ package com.jfoenix.controls;
 
 import com.jfoenix.controls.cells.editors.base.JFXTreeTableCell;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
-
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -32,44 +33,103 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
 
 /**
- * JFXTreeTableColumn is used by {@Link JFXTreeTableView}, it supports grouping functionality
- * 
- * @author  Shadi Shaheen
+ * JFXSimpleTreeTableColumn is used by {@Link JFXTreeTableView}, it supports grouping functionality
+ *
+ * @author Shadi Shaheen
  * @version 1.0
- * @since   2016-03-09
+ * @since 2016-03-09
  */
-public class JFXTreeTableColumn<S, T> extends TreeTableColumn<S, T> {
+public class JFXTreeTableColumn<S, T> extends TreeTableColumn<S, T>
+{
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public JFXTreeTableColumn() {
+	public JFXTreeTableColumn()
+	{
 		super();
 		init();
 	}
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public JFXTreeTableColumn(String text){
+	public JFXTreeTableColumn(String text)
+	{
 		super(text);
 		init();
 	}
 
-	private void init(){
-		this.setCellFactory(new Callback<TreeTableColumn<S,T>, TreeTableCell<S,T>>() {
+	private ObjectProperty<Callback<JFXTreeTableColumn<S, T>, ContextMenu>> contextMenuFactory = new
+			SimpleObjectProperty<>(defaultMenu());
+
+	public Callback<JFXTreeTableColumn<S, T>, ContextMenu> getContextMenuFactory()
+	{
+		return contextMenuFactory.get();
+	}
+
+	public ObjectProperty<Callback<JFXTreeTableColumn<S, T>, ContextMenu>> contextMenuFactoryProperty()
+	{
+		return contextMenuFactory;
+	}
+
+	public void setContextMenuFactory(Callback<JFXTreeTableColumn<S, T>, ContextMenu> contextMenuFactory)
+	{
+		this.contextMenuFactory.set(contextMenuFactory);
+	}
+
+	private Callback<JFXTreeTableColumn<S, T>, ContextMenu> defaultMenu()
+	{
+		return (c) ->
+		{
+			final ContextMenu contextMenu = new ContextMenu();
+			//			contextMenu.setOnShowing((showing)->{
+			//				System.out.println("showing");
+			//			});
+			//			contextMenu.setOnShown((shown)->{
+			//				System.out.println("shown");
+			//			});
+			MenuItem item1 = new MenuItem("Group");
+			item1.setOnAction((action) ->
+			{
+				((JFXTreeTableView) getTreeTableView()).group(this);
+			});
+			MenuItem item2 = new MenuItem("UnGroup");
+			item2.setOnAction((action) ->
+			{
+				((JFXTreeTableView) getTreeTableView()).unGroup(this);
+			});
+			contextMenu.getItems().addAll(item1, item2);
+			return contextMenu;
+		};
+	}
+
+	private void init()
+	{
+		this.setCellFactory(new Callback<TreeTableColumn<S, T>, TreeTableCell<S, T>>()
+		{
 			@Override
-			public TreeTableCell<S, T> call(TreeTableColumn<S, T> param) {
-				return new JFXTreeTableCell<S, T>(){
-					@Override protected void updateItem(T item, boolean empty) {
+			public TreeTableCell<S, T> call(TreeTableColumn<S, T> param)
+			{
+				return new JFXTreeTableCell<S, T>()
+				{
+					@Override
+					protected void updateItem(T item, boolean empty)
+					{
 						if (item == getItem()) return;
 						super.updateItem(item, empty);
-						if (item == null) {
+						if (item == null)
+						{
 							super.setText(null);
 							super.setGraphic(null);
-						} else if (item instanceof Node) {
+						}
+						else if (item instanceof Node)
+						{
 							super.setText(null);
-							super.setGraphic((Node)item);
-						} else {
+							super.setGraphic((Node) item);
+						}
+						else
+						{
 							super.setText(item.toString());
 							super.setGraphic(null);
 						}
@@ -78,41 +138,31 @@ public class JFXTreeTableColumn<S, T> extends TreeTableColumn<S, T> {
 			}
 		});
 
-		Platform.runLater(()->{
-			final ContextMenu contextMenu = new ContextMenu();
-			//			contextMenu.setOnShowing((showing)->{
-			//				System.out.println("showing");
-			//			});
-			//			contextMenu.setOnShown((shown)->{
-			//				System.out.println("shown");
-			//			});
-			MenuItem item1 = new MenuItem("Group");		
-			item1.setOnAction((action)->{ 
-				((JFXTreeTableView)getTreeTableView()).group(this); 
-			});
-			MenuItem item2 = new MenuItem("UnGroup");
-			item2.setOnAction((action)->{ ((JFXTreeTableView)getTreeTableView()).unGroup(this); });
-			contextMenu.getItems().addAll(item1, item2);
-			setContextMenu(contextMenu);	
+		Platform.runLater(() ->
+		{
+			Callback<JFXTreeTableColumn<S, T>, ContextMenu> fac = contextMenuFactory.get();
+			if (fac == null) fac = defaultMenu();
+			setContextMenu(fac.call(this));
 		});
 	}
 
 	/**
 	 * validates the value of the tree item,
 	 * this method also hides the column value for the grouped nodes
-	 * 
+	 *
 	 * @param param tree item
 	 * @return true if the value is valid else false
 	 */
-	public final boolean validateValue(CellDataFeatures<S, T> param){
+	public final boolean validateValue(CellDataFeatures<S, T> param)
+	{
 		Object rowObject = param.getValue().getValue();
-		if((rowObject instanceof RecursiveTreeObject && rowObject.getClass() == RecursiveTreeObject.class)
-				|| (param.getTreeTableView() instanceof JFXTreeTableView 
-					&& ((JFXTreeTableView<?>)param.getTreeTableView()).getGroupOrder().contains(this)
-					// make sure the node is a direct child to a group node
-					&& param.getValue().getParent() != null 
-					&& param.getValue().getParent().getValue().getClass() == RecursiveTreeObject.class 
-				   ))
+		if ((rowObject instanceof RecursiveTreeObject && rowObject.getClass() == RecursiveTreeObject.class)
+				|| (param.getTreeTableView() instanceof JFXTreeTableView
+				&& ((JFXTreeTableView<?>) param.getTreeTableView()).getGroupOrder().contains(this)
+				// make sure the node is a direct child to a group node
+				&& param.getValue().getParent() != null
+				&& param.getValue().getParent().getValue().getClass() == RecursiveTreeObject.class
+		))
 			return false;
 		return true;
 	}
@@ -121,11 +171,13 @@ public class JFXTreeTableColumn<S, T> extends TreeTableColumn<S, T> {
 	 * @param param tree item
 	 * @return the data represented by the tree item
 	 */
-	public final ObservableValue<T> getComputedValue(CellDataFeatures<S, T> param){
+	public final ObservableValue<T> getComputedValue(CellDataFeatures<S, T> param)
+	{
 		Object rowObject = param.getValue().getValue();
-		if(rowObject instanceof RecursiveTreeObject){
+		if (rowObject instanceof RecursiveTreeObject)
+		{
 			RecursiveTreeObject<?> item = (RecursiveTreeObject<?>) rowObject;
-			if(item.getGroupedColumn() == this)
+			if (item.getGroupedColumn() == this)
 				return new ReadOnlyObjectWrapper(item.getGroupedValue());
 		}
 		return null;
@@ -134,8 +186,9 @@ public class JFXTreeTableColumn<S, T> extends TreeTableColumn<S, T> {
 	/**
 	 * @return true if the column is grouped else false
 	 */
-	public boolean isGrouped() {
-		if(getTreeTableView() instanceof JFXTreeTableView && ((JFXTreeTableView<?>)getTreeTableView()).getGroupOrder().contains(this))
+	public boolean isGrouped()
+	{
+		if (getTreeTableView() instanceof JFXTreeTableView && ((JFXTreeTableView<?>) getTreeTableView()).getGroupOrder().contains(this))
 			return true;
 		return false;
 	}

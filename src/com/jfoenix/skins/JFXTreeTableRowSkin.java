@@ -67,7 +67,7 @@ public class JFXTreeTableRowSkin<T> extends TreeTableRowSkin<T> {
 	// this vairable is used to hold the expanded/collapsed row index
 	private static int expandedIndex = -1; 
 	// this variable is used to hold the rippler while expanding/collapsing a row
-	//	private static JFXTreeTableRowSkin<?> oldSkin = null;
+	//	private static JFXSimpleTreeTableRowSkin<?> oldSkin = null;
 	// this variable indicates whether an expand/collapse operation is triggered
 	private boolean expandTriggered = false;
 

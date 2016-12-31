@@ -69,7 +69,7 @@ public class JFXDatePickerSkin extends ComboBoxPopupControl<LocalDate> {
 
 	private JFXDialog dialog;
 
-	public JFXDatePickerSkin(final JFXDatePicker datePicker) {
+	public  JFXDatePickerSkin(final JFXDatePicker datePicker) {
 		super(datePicker, new JFXDatePickerBehavior(datePicker));        
 		this.jfxDatePicker = datePicker;       
 		editorNode = new JFXTextField();

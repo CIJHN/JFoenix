@@ -24,7 +24,7 @@ import javafx.scene.control.Skin;
 import javafx.scene.control.TreeTableRow;
 
 /**
- * JFXTreeTableRow is the row object used in {@link JFXTreeTableView} 
+ * JFXSimpleTreeTableRow is the row object used in {@link JFXTreeTableView}
  * 
  * @author  Shadi Shaheen
  * @version 1.0

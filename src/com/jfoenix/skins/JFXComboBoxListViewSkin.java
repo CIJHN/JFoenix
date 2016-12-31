@@ -22,6 +22,7 @@ import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.converters.base.NodeConverter;
 import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
@@ -51,7 +52,7 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
 	 *                                                                         *
 	 * Private fields                                                          *
 	 *                                                                         *
-	 **************************************************************************/    
+	 **************************************************************************/
 
 	private StackPane customPane;
 
@@ -59,7 +60,7 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
 	 *                                                                         *
 	 * Constructors                                                            *
 	 *                                                                         *
-	 **************************************************************************/   
+	 **************************************************************************/
 
 	public JFXComboBoxListViewSkin(final JFXComboBox<T> comboBox) {
 
@@ -70,7 +71,15 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
 		customPane.getStyleClass().add("combo-box-button-container");
 		customPane.backgroundProperty().bindBidirectional(getSkinnable().backgroundProperty());
 		customPane.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, null, null)));
-		customPane.setBorder(new Border(new BorderStroke(Color.TRANSPARENT, Color.TRANSPARENT, Color.BLACK, Color.TRANSPARENT,  BorderStrokeStyle.NONE,BorderStrokeStyle.NONE, BorderStrokeStyle.SOLID, BorderStrokeStyle.NONE, null, new BorderWidths(0, 0, 1, 0), null)));
+		customPane.borderProperty().bind(Bindings.createObjectBinding(
+				()-> new Border(new BorderStroke(Color.TRANSPARENT, Color.TRANSPARENT, ((JFXComboBox) this.getSkinnable()).getBorderColor(),
+						Color.TRANSPARENT,  BorderStrokeStyle.NONE,BorderStrokeStyle.NONE, BorderStrokeStyle.SOLID,
+						BorderStrokeStyle.NONE, null, new BorderWidths(0, 0, ((JFXComboBox) this.getSkinnable()).getBorderWidth(), 0),
+						null)),
+				comboBox.borderColorProperty(),
+				comboBox.borderWidthProperty()
+		));
+//		customPane.setBorder(new Border(new BorderStroke(Color.TRANSPARENT, Color.TRANSPARENT, Color.BLACK, Color.TRANSPARENT,  BorderStrokeStyle.NONE,BorderStrokeStyle.NONE, BorderStrokeStyle.SOLID, BorderStrokeStyle.NONE, null, new BorderWidths(0, 0, 1, 0), null)));
 		getChildren().add(0,customPane);
 		arrowButton.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, null, null)));
 
@@ -87,7 +96,7 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
 				updateDisplayText(this, item, empty);
 			}
 		});
-		
+
 		ListView<T> view = comboBox.getButtonCell().getListView();
 		view.widthProperty().addListener(new WeakChangeListener<>((o,oldVal,newVal)-> view.setPrefWidth(newVal.doubleValue())));
 	}
@@ -96,13 +105,13 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
 	 *                                                                         *
 	 * Public API                                                              *
 	 *                                                                         *
-	 **************************************************************************/  
+	 **************************************************************************/
 
 	@Override protected TextField getEditor() {
 		// return null when called from parent listeners
 		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
 		boolean parentListenerCall = caller.getMethodName().contains("lambda") && caller.getClassName().equals(this.getClass().getSuperclass().getSuperclass().getName());
-		if(parentListenerCall) return null;		
+		if(parentListenerCall) return null;
 		return getSkinnable().isEditable() ? ((JFXComboBox<T>)getSkinnable()).getJFXEditor() : null;
 	}
 
@@ -110,7 +119,7 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
 	@Override protected void layoutChildren(final double x, final double y,
 			final double w, final double h) {
 		customPane.resizeRelocate(x, y, w , h);
-		super.layoutChildren(x,y,w,h);		 
+		super.layoutChildren(x,y,w,h);
 	}
 
 	private boolean updateDisplayText(ListCell<T> cell, T item, boolean empty) {
