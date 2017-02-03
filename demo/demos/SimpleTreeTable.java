@@ -2,6 +2,7 @@ package demos;
 
 import com.jfoenix.controls.JFXTableView;
 import com.jfoenix.controls.JFXTextField;
+import com.jfoenix.controls.cells.editors.base.GenericEditableTableCell;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
@@ -38,6 +39,7 @@ public class SimpleTreeTable extends Application {
             TableColumn<User, String> ageColumn = new TableColumn<>("Age");
             ageColumn.setPrefWidth(150);
             ageColumn.setResizable(false);
+            ageColumn.setCellFactory(param -> new GenericEditableTableCell<>());
             ageColumn.setCellValueFactory(param -> {
                 return param.getValue().age;
             });
