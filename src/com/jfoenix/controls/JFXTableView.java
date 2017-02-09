@@ -1,6 +1,5 @@
 package com.jfoenix.controls;
 
-import com.jfoenix.effects.JFXDepthManager;
 import com.jfoenix.skins.JFXTableColumnHeader;
 import com.jfoenix.skins.JFXTableRowSkin;
 import com.sun.javafx.scene.control.skin.NestedTableColumnHeader;
@@ -8,49 +7,32 @@ import com.sun.javafx.scene.control.skin.TableColumnHeader;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 import com.sun.javafx.scene.control.skin.TableViewSkin;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 
 import java.lang.reflect.Field;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Predicate;
 
 /**
  * @author ci010
  */
 public class JFXTableView<S> extends TableView<S>
 {
-	private FilteredList<S> itemSource;
-
 	public JFXTableView()
 	{
 		super(FXCollections.observableArrayList());
-		this.itemSource = new FilteredList<>(FXCollections.observableArrayList());
 		init();
 	}
 
 	public JFXTableView(ObservableList<S> itemSource)
 	{
-		super(FXCollections.observableArrayList());
-		this.itemSource = new FilteredList<>(itemSource);
+		super(itemSource);
 		init();
-	}
-
-	public ObservableList<S> getItemSource() {return itemSource;}
-
-	public void setItemSource(ObservableList<S> itemSource)
-	{
-		Objects.requireNonNull(itemSource);
-		this.itemSource = new FilteredList<>(itemSource);
 	}
 
 	private BooleanProperty columnsDraggable = new SimpleBooleanProperty(true);
@@ -87,18 +69,6 @@ public class JFXTableView<S> extends TableView<S>
 		this.fixedSize.set(fixedSize);
 	}
 
-	private MapProperty<String, Predicate<S>> filterMap = new SimpleMapProperty<>(FXCollections.observableMap(new TreeMap<String, Predicate<S>>()));
-
-	public ObservableMap<String, Predicate<S>> getFilterMap()
-	{
-		return filterMap.get();
-	}
-
-	public MapProperty<String, Predicate<S>> filterMapProperty()
-	{
-		return filterMap;
-	}
-
 	protected void init()
 	{
 		this.setRowFactory(new Callback<TableView<S>, TableRow<S>>()
@@ -118,15 +88,7 @@ public class JFXTableView<S> extends TableView<S>
 		});
 		this.fixedSize.addListener(o -> layout());
 		this.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-		this.filterMap.addListener((MapChangeListener<String, Predicate<S>>) change ->
-		{
-			if (!filterMap.isEmpty())
-				filterMap.values().stream().reduce(Predicate::and).ifPresent(itemSource::setPredicate);
-			this.getItems().setAll(itemSource);
-		});
-		this.getItems().setAll(itemSource);
 	}
-
 
 	@Override
 	protected double computeMinWidth(double height)
@@ -159,13 +121,6 @@ public class JFXTableView<S> extends TableView<S>
 		}
 	}
 
-	public void expand()
-	{
-//        ((TableViewSkin) getSkin()).createCell()
-	}
-
-	private DoubleProperty gap = new SimpleDoubleProperty(5);
-
 	@Override
 	protected Skin<?> createDefaultSkin()
 	{
@@ -173,15 +128,14 @@ public class JFXTableView<S> extends TableView<S>
 		{
 
 			{
-				Callback<TableView<S>, TableRow<S>> callback = this.rowFactoryProperty().get();
-				this.rowFactoryProperty().set(param ->
-				{
-					TableRow<S> call = callback.call(param);
-					call.setOnMouseEntered(e -> JFXDepthManager.setDepth(call, 3));
-					call.setOnMouseExited(e -> JFXDepthManager.setDepth(call, 0));
-					return call;
-				});
-//                this.flow.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(5), new Insets(3))));
+//				Callback<TableView<S>, TableRow<S>> callback = this.rowFactoryProperty().get();
+//				this.rowFactoryProperty().set(param ->
+//				{
+//					TableRow<S> call = callback.call(param);
+//					call.setOnMouseEntered(e -> JFXDepthManager.setDepth(call, 3));
+//					call.setOnMouseExited(e -> JFXDepthManager.setDepth(call, 0));
+//					return call;
+//				});
 			}
 
 			@Override
