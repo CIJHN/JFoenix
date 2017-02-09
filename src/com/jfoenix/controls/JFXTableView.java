@@ -38,6 +38,13 @@ public class JFXTableView<S> extends TableView<S>
 		init();
 	}
 
+	public JFXTableView(ObservableList<S> itemSource)
+	{
+		super(FXCollections.observableArrayList());
+		this.itemSource = new FilteredList<>(itemSource);
+		init();
+	}
+
 	public ObservableList<S> getItemSource() {return itemSource;}
 
 	public void setItemSource(ObservableList<S> itemSource)
