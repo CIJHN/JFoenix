@@ -124,6 +124,7 @@ public class JFXTableView<S> extends TableView<S>
 				filterMap.values().stream().reduce(Predicate::and).ifPresent(itemSource::setPredicate);
 			this.getItems().setAll(itemSource);
 		});
+		this.getItems().setAll(itemSource);
 	}
 
 
