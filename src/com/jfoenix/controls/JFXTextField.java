@@ -18,32 +18,24 @@
  */
 package com.jfoenix.controls;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.jfoenix.skins.JFXTextFieldSkin;
+import com.jfoenix.validation.base.ValidatorBase;
+import com.sun.javafx.css.converters.BooleanConverter;
+import com.sun.javafx.css.converters.PaintConverter;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.css.CssMetaData;
-import javafx.css.PseudoClass;
-import javafx.css.SimpleStyleableBooleanProperty;
-import javafx.css.SimpleStyleableObjectProperty;
-import javafx.css.Styleable;
-import javafx.css.StyleableBooleanProperty;
-import javafx.css.StyleableObjectProperty;
-import javafx.css.StyleableProperty;
+import javafx.css.*;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
-import com.jfoenix.skins.JFXTextFieldSkin;
-import com.jfoenix.validation.base.ValidatorBase;
-import com.sun.javafx.css.converters.BooleanConverter;
-import com.sun.javafx.css.converters.PaintConverter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * JFXTextField is the material design implementation of a text Field.
@@ -138,19 +130,19 @@ public class JFXTextField extends TextField {
 			validator.validate();
 			if (validator.getHasErrors()) {
 				activeValidator.set(validator);
-				pseudoClassStateChanged(PSEUDO_CLASS_ERROR, true);
 				return false;
 			}
 		}
-		reset();
+		activeValidator.set(null);
 		return true;
 	}
-	
-	public void reset() {
-		activeValidator.set(null);
-		pseudoClassStateChanged(PSEUDO_CLASS_ERROR, false);
-	}
 
+	public void resetValidation() {
+		getStyleClass().remove(activeValidator.get() == null? "" : activeValidator.get().getErrorStyleClass());
+		pseudoClassStateChanged(ValidatorBase.PSEUDO_CLASS_ERROR, false);
+		activeValidator.set(null);
+	}
+	
 	/***************************************************************************
 	 *                                                                         *
 	 * styleable Properties                                                    *
@@ -207,9 +199,24 @@ public class JFXTextField extends TextField {
 	public void setFocusColor(Paint color) {
 		this.focusColor.set(color);
 	}
+	
+	/**
+	 * disable animation on validation
+	 */
+	private StyleableBooleanProperty disableAnimation = new SimpleStyleableBooleanProperty(StyleableProperties.DISABLE_ANIMATION, JFXTextField.this, "disableAnimation", false);
+	public final StyleableBooleanProperty disableAnimationProperty() {
+		return this.disableAnimation;
+	}
+	public final Boolean isDisableAnimation() {
+		return disableAnimation == null ? false : this.disableAnimationProperty().get();
+	}
+	public final void setDisableAnimation(final Boolean disabled) {
+		this.disableAnimationProperty().set(disabled);
+	}
+	
 
 	private static class StyleableProperties {
-		private static final CssMetaData<JFXTextField, Paint> UNFOCUS_COLOR = new CssMetaData<JFXTextField, Paint>("-fx-unfocus-color", PaintConverter.getInstance(), Color.rgb(77, 77, 77)) {
+		private static final CssMetaData<JFXTextField, Paint> UNFOCUS_COLOR = new CssMetaData<JFXTextField, Paint>("-jfx-unfocus-color", PaintConverter.getInstance(), Color.valueOf("#A6A6A6")) {
 			@Override
 			public boolean isSettable(JFXTextField control) {
 				return control.unFocusColor == null || !control.unFocusColor.isBound();
@@ -220,7 +227,7 @@ public class JFXTextField extends TextField {
 				return control.unFocusColorProperty();
 			}
 		};
-		private static final CssMetaData<JFXTextField, Paint> FOCUS_COLOR = new CssMetaData<JFXTextField, Paint>("-fx-focus-color", PaintConverter.getInstance(), Color.valueOf("#4059A9")) {
+		private static final CssMetaData<JFXTextField, Paint> FOCUS_COLOR = new CssMetaData<JFXTextField, Paint>("-jfx-focus-color", PaintConverter.getInstance(), Color.valueOf("#3f51b5")) {
 			@Override
 			public boolean isSettable(JFXTextField control) {
 				return control.focusColor == null || !control.focusColor.isBound();
@@ -231,7 +238,7 @@ public class JFXTextField extends TextField {
 				return control.focusColorProperty();
 			}
 		};
-		private static final CssMetaData<JFXTextField, Boolean> LABEL_FLOAT = new CssMetaData<JFXTextField, Boolean>("-fx-label-float", BooleanConverter.getInstance(), false) {
+		private static final CssMetaData<JFXTextField, Boolean> LABEL_FLOAT = new CssMetaData<JFXTextField, Boolean>("-jfx-label-float", BooleanConverter.getInstance(), false) {
 			@Override
 			public boolean isSettable(JFXTextField control) {
 				return control.labelFloat == null || !control.labelFloat.isBound();
@@ -242,11 +249,25 @@ public class JFXTextField extends TextField {
 				return control.labelFloatProperty();
 			}
 		};
+		
+		private static final CssMetaData< JFXTextField, Boolean> DISABLE_ANIMATION =
+				new CssMetaData< JFXTextField, Boolean>("-jfx-disable-animation",
+						BooleanConverter.getInstance(), false) {
+			@Override
+			public boolean isSettable(JFXTextField control) {
+				return control.disableAnimation == null || !control.disableAnimation.isBound();
+			}
+			@Override
+			public StyleableBooleanProperty getStyleableProperty(JFXTextField control) {
+				return control.disableAnimationProperty();
+			}
+		};
+		
 
 		private static final List<CssMetaData<? extends Styleable, ?>> CHILD_STYLEABLES;
 		static {
 			final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<CssMetaData<? extends Styleable, ?>>(Control.getClassCssMetaData());
-			Collections.addAll(styleables, UNFOCUS_COLOR, FOCUS_COLOR, LABEL_FLOAT);
+			Collections.addAll(styleables, UNFOCUS_COLOR, FOCUS_COLOR, LABEL_FLOAT, DISABLE_ANIMATION);
 			CHILD_STYLEABLES = Collections.unmodifiableList(styleables);
 		}
 	}
@@ -268,11 +289,4 @@ public class JFXTextField extends TextField {
 	public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
 		return StyleableProperties.CHILD_STYLEABLES;
 	}
-	
-	
-	/**
-	 * this style class will be activated when a validation error occurs
-	 */
-	private static final PseudoClass PSEUDO_CLASS_ERROR = PseudoClass.getPseudoClass("error");
-	
 }

@@ -16,6 +16,7 @@ import demos.gui.uicomponents.PopupController;
 import demos.gui.uicomponents.ProgressBarController;
 import demos.gui.uicomponents.RadioButtonController;
 import demos.gui.uicomponents.SVGLoaderController;
+import demos.gui.uicomponents.ScrollPaneController;
 import demos.gui.uicomponents.SliderController;
 import demos.gui.uicomponents.SpinnerController;
 import demos.gui.uicomponents.TextFieldController;
@@ -108,12 +109,23 @@ public class SideMenuController {
 	private Label masonry;
 	
 	@FXML
-	private JFXListView<?> sideList;
+	@ActionTrigger("scrollpane")
+	private Label scrollpane;
+	
+	@FXML
+	private JFXListView<Label> sideList;
 
 	@PostConstruct
 	public void init() throws FlowException, VetoException {
-		sideList.propagateMouseEventsToParent();
 		FlowHandler contentFlowHandler = (FlowHandler) context.getRegisteredObject("ContentFlowHandler");
+		sideList.propagateMouseEventsToParent();
+		sideList.setOnMouseClicked(event ->  {
+			try {				
+				contentFlowHandler.handle(sideList.getSelectionModel().getSelectedItem().getId());				
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
 		Flow contentFlow = (Flow) context.getRegisteredObject("ContentFlow");
 		bindNodeToController(button, ButtonController.class, contentFlow, contentFlowHandler);
 		bindNodeToController(checkbox, CheckboxController.class, contentFlow, contentFlowHandler);
@@ -132,17 +144,11 @@ public class SideMenuController {
 		bindNodeToController(svgLoader, SVGLoaderController.class, contentFlow, contentFlowHandler);
 		bindNodeToController(pickers, PickersController.class, contentFlow, contentFlowHandler);
 		bindNodeToController(masonry, MasonryPaneController.class, contentFlow, contentFlowHandler);
+		bindNodeToController(scrollpane, ScrollPaneController.class, contentFlow, contentFlowHandler);
 	}
 
 	private void bindNodeToController(Node node, Class<?> controllerClass, Flow flow, FlowHandler flowHandler) {
 		flow.withGlobalLink(node.getId(), controllerClass);
-		node.setOnMouseClicked((e) -> {
-			try {				
-				flowHandler.handle(node.getId());				
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
-		});
 	}
 
 }

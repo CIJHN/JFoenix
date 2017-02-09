@@ -32,7 +32,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.CssMetaData;
-import javafx.css.PseudoClass;
 import javafx.css.SimpleStyleableBooleanProperty;
 import javafx.css.SimpleStyleableObjectProperty;
 import javafx.css.Styleable;
@@ -138,19 +137,19 @@ public class JFXTextArea extends TextArea{
 			validator.validate();
 			if (validator.getHasErrors()) {
 				activeValidator.set(validator);
-				pseudoClassStateChanged(PSEUDO_CLASS_ERROR, true);
 				return false;
 			}
 		}
-		reset();
+		activeValidator.set(null);
 		return true;
 	}
 	
-	public void reset() {
+	public void resetValidation() {
+		getStyleClass().remove(activeValidator.get() == null? "" : activeValidator.get().getErrorStyleClass());
+		pseudoClassStateChanged(ValidatorBase.PSEUDO_CLASS_ERROR, false);
 		activeValidator.set(null);
-		pseudoClassStateChanged(PSEUDO_CLASS_ERROR, false);
 	}
-
+	
 	/***************************************************************************
 	 *                                                                         *
 	 * styleable Properties                                                    *
@@ -208,8 +207,22 @@ public class JFXTextArea extends TextArea{
 		this.focusColor.set(color);
 	}
 
+	/**
+	 * disable animation on validation
+	 */
+	private StyleableBooleanProperty disableAnimation = new SimpleStyleableBooleanProperty(StyleableProperties.DISABLE_ANIMATION, JFXTextArea.this, "disableAnimation", false);
+	public final StyleableBooleanProperty disableAnimationProperty() {
+		return this.disableAnimation;
+	}
+	public final Boolean isDisableAnimation() {
+		return disableAnimation == null ? false : this.disableAnimationProperty().get();
+	}
+	public final void setDisableAnimation(final Boolean disabled) {
+		this.disableAnimationProperty().set(disabled);
+	}
+	
 	private static class StyleableProperties {
-		private static final CssMetaData<JFXTextArea, Paint> UNFOCUS_COLOR = new CssMetaData<JFXTextArea, Paint>("-fx-unfocus-color", PaintConverter.getInstance(), Color.rgb(77, 77, 77)) {
+		private static final CssMetaData<JFXTextArea, Paint> UNFOCUS_COLOR = new CssMetaData<JFXTextArea, Paint>("-jfx-unfocus-color", PaintConverter.getInstance(), Color.rgb(77, 77, 77)) {
 			@Override
 			public boolean isSettable(JFXTextArea control) {
 				return control.unFocusColor == null || !control.unFocusColor.isBound();
@@ -220,7 +233,7 @@ public class JFXTextArea extends TextArea{
 				return control.unFocusColorProperty();
 			}
 		};
-		private static final CssMetaData<JFXTextArea, Paint> FOCUS_COLOR = new CssMetaData<JFXTextArea, Paint>("-fx-focus-color", PaintConverter.getInstance(), Color.valueOf("#4059A9")) {
+		private static final CssMetaData<JFXTextArea, Paint> FOCUS_COLOR = new CssMetaData<JFXTextArea, Paint>("-jfx-focus-color", PaintConverter.getInstance(), Color.valueOf("#4059A9")) {
 			@Override
 			public boolean isSettable(JFXTextArea control) {
 				return control.focusColor == null || !control.focusColor.isBound();
@@ -231,7 +244,7 @@ public class JFXTextArea extends TextArea{
 				return control.focusColorProperty();
 			}
 		};
-		private static final CssMetaData<JFXTextArea, Boolean> LABEL_FLOAT = new CssMetaData<JFXTextArea, Boolean>("-fx-label-float", BooleanConverter.getInstance(), false) {
+		private static final CssMetaData<JFXTextArea, Boolean> LABEL_FLOAT = new CssMetaData<JFXTextArea, Boolean>("-jfx-label-float", BooleanConverter.getInstance(), false) {
 			@Override
 			public boolean isSettable(JFXTextArea control) {
 				return control.labelFloat == null || !control.labelFloat.isBound();
@@ -242,11 +255,24 @@ public class JFXTextArea extends TextArea{
 				return control.labelFloatProperty();
 			}
 		};
+		
+		private static final CssMetaData< JFXTextArea, Boolean> DISABLE_ANIMATION =
+				new CssMetaData< JFXTextArea, Boolean>("-jfx-disable-animation",
+						BooleanConverter.getInstance(), false) {
+			@Override
+			public boolean isSettable(JFXTextArea control) {
+				return control.disableAnimation == null || !control.disableAnimation.isBound();
+			}
+			@Override
+			public StyleableBooleanProperty getStyleableProperty(JFXTextArea control) {
+				return control.disableAnimationProperty();
+			}
+		};
 
 		private static final List<CssMetaData<? extends Styleable, ?>> CHILD_STYLEABLES;
 		static {
 			final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<CssMetaData<? extends Styleable, ?>>(Control.getClassCssMetaData());
-			Collections.addAll(styleables, UNFOCUS_COLOR, FOCUS_COLOR, LABEL_FLOAT);
+			Collections.addAll(styleables, UNFOCUS_COLOR, FOCUS_COLOR, LABEL_FLOAT, DISABLE_ANIMATION);
 			CHILD_STYLEABLES = Collections.unmodifiableList(styleables);
 		}
 	}
@@ -268,10 +294,4 @@ public class JFXTextArea extends TextArea{
 	public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
 		return StyleableProperties.CHILD_STYLEABLES;
 	}
-	
-	/**
-	 * this style class will be activated when a validation error occurs
-	 */
-	private static final PseudoClass PSEUDO_CLASS_ERROR = PseudoClass.getPseudoClass("error");
-	
 }

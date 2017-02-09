@@ -18,11 +18,7 @@
  */
 package com.jfoenix.controls;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 import com.jfoenix.skins.JFXListViewSkin;
 import com.sun.javafx.css.converters.BooleanConverter;
@@ -70,8 +66,6 @@ public class JFXListView<T> extends ListView<T> {
 	 */
 	public JFXListView() {
 		super();
-		// bug : to prevent selection when focusing the list
-		this.setFocusTraversable(false);
 		this.setCellFactory(new Callback<ListView<T>, ListCell<T>>() {
 			@Override
 			public ListCell<T> call(ListView<T> listView) {
@@ -93,10 +87,10 @@ public class JFXListView<T> extends ListView<T> {
 	public ObjectProperty<Integer> depthProperty(){
 		return depthProperty;
 	}
-	public int getDepthProperty(){
+	public int getDepth(){
 		return depthProperty.get();
 	}
-	public void setDepthProperty(int depth){
+	public void setDepth(int depth){
 		depthProperty.set(depth);
 	}	
 
@@ -176,11 +170,11 @@ public class JFXListView<T> extends ListView<T> {
 		// if item from the list is selected
 		if(this.getSelectionModel().getSelectedIndex() != -1 ){
 			int selectedIndex = this.getSelectionModel().getSelectedIndex();
-			Iterator<Integer> itr = sublistsIndices.keySet().iterator();
+			Iterator<Map.Entry<Integer, JFXListView<?>>> itr = sublistsIndices.entrySet().iterator();
 			int preItemsSize = 0;
 			while(itr.hasNext()){
-				Integer key = itr.next();
-				if(key < selectedIndex) preItemsSize += sublistsIndices.get(key).getItems().size()-1;
+				Map.Entry<Integer, JFXListView<?>> entry = itr.next();
+				if(entry.getKey() < selectedIndex) preItemsSize += entry.getValue().getItems().size()-1;
 			}
 //			int preItemsSize = sublistsIndices.keySet().stream().filter(key-> key < selectedIndex).mapToInt(key->sublistsIndices.get(key).getItems().size()-1).sum();
 			overAllIndexProperty.set(selectedIndex + preItemsSize);
@@ -340,7 +334,7 @@ public class JFXListView<T> extends ListView<T> {
 
 	private static class StyleableProperties {
 		private static final CssMetaData< JFXListView<?>, Number> CELL_HORIZONTAL_MARGIN =
-				new CssMetaData< JFXListView<?>, Number>("-fx-cell-horizontal-margin",
+				new CssMetaData< JFXListView<?>, Number>("-jfx-cell-horizontal-margin",
 						SizeConverter.getInstance(), 0) {
 			@Override
 			public boolean isSettable(JFXListView<?> control) {
@@ -352,7 +346,7 @@ public class JFXListView<T> extends ListView<T> {
 			}
 		};
 		private static final CssMetaData< JFXListView<?>, Number> CELL_VERTICAL_MARGIN =
-				new CssMetaData< JFXListView<?>, Number>("-fx-cell-vertical-margin",
+				new CssMetaData< JFXListView<?>, Number>("-jfx-cell-vertical-margin",
 						SizeConverter.getInstance(), 4) {
 			@Override
 			public boolean isSettable(JFXListView<?> control) {
@@ -364,7 +358,7 @@ public class JFXListView<T> extends ListView<T> {
 			}
 		};
 		private static final CssMetaData< JFXListView<?>, Number> VERTICAL_GAP =
-				new CssMetaData< JFXListView<?>, Number>("-fx-vertical-gap",
+				new CssMetaData< JFXListView<?>, Number>("-jfx-vertical-gap",
 						SizeConverter.getInstance(), 0) {
 			@Override
 			public boolean isSettable(JFXListView<?> control) {
@@ -376,7 +370,7 @@ public class JFXListView<T> extends ListView<T> {
 			}
 		};
 		private static final CssMetaData< JFXListView<?>, Boolean> EXPANDED =
-				new CssMetaData< JFXListView<?>, Boolean>("-fx-expanded",
+				new CssMetaData< JFXListView<?>, Boolean>("-jfx-expanded",
 						BooleanConverter.getInstance(), false) {
 			@Override
 			public boolean isSettable(JFXListView<?> control) {

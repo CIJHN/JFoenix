@@ -58,7 +58,7 @@ public class JFXButtonSkin extends ButtonSkin {
 	private final CornerRadii defaultRadii = new CornerRadii(3);
 	
 	private boolean invalid = true;
-
+	private Runnable releaseManualRippler = null;
 	public JFXButtonSkin(JFXButton button) {
 		super(button);
 
@@ -71,15 +71,34 @@ public class JFXButtonSkin extends ButtonSkin {
 							buttonContainer.backgroundProperty().get()!=null && buttonContainer.getBackground().getFills().size() > 0 ?buttonContainer.getBackground().getFills().get(0).getRadii() : defaultRadii,
 							buttonContainer.backgroundProperty().get()!=null && buttonContainer.getBackground().getFills().size() > 0 ?buttonContainer.getBackground().getFills().get(0).getInsets() : Insets.EMPTY));
 				}, buttonContainer.backgroundProperty()));				
-				mask.resize(buttonContainer.getWidth(), buttonContainer.getHeight());
+				mask.resize(buttonContainer.getWidth()-buttonContainer.snappedRightInset()-buttonContainer.snappedLeftInset(), buttonContainer.getHeight()-buttonContainer.snappedBottomInset()-buttonContainer.snappedTopInset());
 				return mask;
 			}
 			@Override protected void initListeners(){
 				ripplerPane.setOnMousePressed((event) -> {
+					if(releaseManualRippler!=null) releaseManualRippler.run();
+					releaseManualRippler = null;
 					createRipple(event.getX(),event.getY());
 				});
 			}
 		};
+		
+		getSkinnable().armedProperty().addListener((o,oldVal,newVal)->{
+			if(newVal){
+				releaseManualRippler = buttonRippler.createManualRipple();
+				if(clickedAnimation!=null){
+					clickedAnimation.setRate(1);
+					clickedAnimation.play();	
+				}
+			}else{
+				if(releaseManualRippler!=null) releaseManualRippler.run();
+				if(clickedAnimation!=null){
+					clickedAnimation.setRate(-1);
+					clickedAnimation.play();	
+				}
+			}
+		});
+		
 		buttonContainer.getChildren().add(buttonRippler);
 
 
@@ -97,6 +116,14 @@ public class JFXButtonSkin extends ButtonSkin {
 				clickedAnimation.play();
 			}
 		});
+		
+		// show focused state
+		button.focusedProperty().addListener((o,oldVal,newVal)->{
+			if(newVal){
+				if(!getSkinnable().isPressed()) buttonRippler.showOverlay();
+			}else buttonRippler.hideOverlay();
+		});
+		button.pressedProperty().addListener((o,oldVal,newVal)-> buttonRippler.hideOverlay());
 		
 		/*
 		 * disable action when clicking on the button shadow 
@@ -171,7 +198,9 @@ public class JFXButtonSkin extends ButtonSkin {
 
 	private boolean isJavaDefaultBackground(Background background){
 		try{
-			return background.getFills().get(0).getFill().toString().equals("0xffffffba");	
+			return background.getFills().get(0).getFill().toString().equals("0xffffffba") 
+				|| background.getFills().get(0).getFill().toString().equals("0xffffffbf") 
+				|| background.getFills().get(0).getFill().toString().equals("0xffffffbd");	
 		}catch(Exception e){
 			return false;
 		}

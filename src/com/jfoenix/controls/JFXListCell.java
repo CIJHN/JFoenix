@@ -48,6 +48,10 @@ import javafx.util.Duration;
 /**
  * material design implementation of ListCell
  * 
+ * NOTE: passive nodes (Labels and Shapes) will be set to mouse transparent in order to
+ * show the ripple effect upon clicking , to change this behavior you can override the 
+ * method {{@link #makeChildrenTransparent()}
+ * 
  * @author  Shadi Shaheen
  * @version 1.0
  * @since   2016-03-09
@@ -56,9 +60,7 @@ public class JFXListCell<T> extends ListCell<T> {
 
 	protected JFXRippler cellRippler = new JFXRippler(new StackPane()){		
 		@Override protected void initListeners(){
-			ripplerPane.setOnMousePressed((event) -> {
-				createRipple(event.getX(),event.getY());				
-			});
+			ripplerPane.setOnMousePressed((event) -> createRipple(event.getX(),event.getY()));
 		}
 	};
 
@@ -104,17 +106,10 @@ public class JFXListCell<T> extends ListCell<T> {
 								Platform.runLater(()-> getListView().requestLayout());
 							});
 						}
-					});		
+					});
+					
 					selectedProperty().addListener((o,oldVal,newVal)->{
 						if(newVal) selectionChanged = true;
-					});
-
-					// propagate mouse events to content
-					this.addEventHandler(MouseEvent.ANY, (e)->{
-						if(!e.isConsumed()){
-							e.consume();
-							if(getGraphic()!=null) getGraphic().fireEvent(e);
-						}
 					});
 				}
 			}
@@ -163,11 +158,11 @@ public class JFXListCell<T> extends ListCell<T> {
 				}
 			}else{
 				this.setTranslateY(0);
-				clip.setX(0);
 				clip.setY(0);
 				clip.setHeight(getHeight());
-				clip.setWidth(getWidth());
 			}
+			clip.setX(0);
+			clip.setWidth(getWidth());
 		}
 		if(!getChildren().contains(cellRippler)){
 			makeChildrenTransparent();
